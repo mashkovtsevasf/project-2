@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
-import { ApiService } from '../../shared/api';
+import { ApiService, ToastService } from '../../shared/api';
 
 @Component({
   selector: 'app-task-detail',
@@ -10,12 +10,12 @@ import { ApiService } from '../../shared/api';
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
     <a routerLink="/tasks">Back to List</a>
-    <h2>Task Detail</h2>
+    <h2 class="m-0">Task Detail</h2>
 
     <div *ngIf="!task">Loading...</div>
 
     <ng-container *ngIf="task">
-      <div *ngIf="!editMode">
+      <div *ngIf="!editMode" class="surface mt-3 fade-in" style="padding:16px;">
         <p><strong>Task ID:</strong> {{ task.id }}</p>
         <p><strong>Title:</strong> {{ task.title }}</p>
         <p><strong>Description:</strong> {{ task.description || '—' }}</p>
@@ -26,18 +26,18 @@ import { ApiService } from '../../shared/api';
         <p><strong>Created:</strong> {{ task.created_at }}</p>
         <p><strong>Updated:</strong> {{ task.updated_at }}</p>
 
-        <div style="display:flex; gap:8px; margin:10px 0;">
-          <button (click)="toggleEdit()">Edit</button>
-          <button (click)="confirmDelete()">Delete Task</button>
+        <div class="flex gap-2 mt-2">
+          <button class="btn" (click)="toggleEdit()">Edit</button>
+          <button class="btn danger" (click)="confirmDelete()">Delete Task</button>
         </div>
       </div>
 
-      <form *ngIf="editMode" [formGroup]="form" (ngSubmit)="save()" style="display:grid; gap:12px; max-width:520px;">
+      <form *ngIf="editMode" [formGroup]="form" (ngSubmit)="save()" class="surface mt-3 slide-up" style="display:grid; gap:12px; max-width:620px; padding:16px;">
         <label>Title <input type="text" formControlName="title" maxlength="100" required /></label>
-        <div style="color:#c00" *ngIf="submitted && form.controls['title'].invalid">Title 1–100 chars required.</div>
+        <div style="color:var(--danger)" *ngIf="submitted && form.controls['title'].invalid">Title 1–100 chars required.</div>
 
         <label>Description <textarea formControlName="description" maxlength="500" rows="4"></textarea></label>
-        <div style="font-size:12px; color:#666">{{ (form.value.description?.length || 0) }}/500</div>
+        <div style="font-size:12px; color:var(--muted)">{{ (form.value.description?.length || 0) }}/500</div>
 
         <label>Status
           <select formControlName="status">
@@ -63,17 +63,19 @@ import { ApiService } from '../../shared/api';
 
         <label>Due Date <input type="date" formControlName="due_date" [attr.min]="today" /></label>
 
-        <div style="display:flex; gap:8px;">
-          <button type="submit">Save</button>
-          <button type="button" (click)="cancelEdit()">Cancel</button>
+        <div class="flex gap-2">
+          <button type="submit" class="btn primary">Save</button>
+          <button type="button" class="btn" (click)="cancelEdit()">Cancel</button>
         </div>
-        <div *ngIf="errorMessage" style="color:#c00">{{ errorMessage }}</div>
+        <div *ngIf="errorMessage" style="color:var(--danger)">{{ errorMessage }}</div>
       </form>
 
-      <h3 style="margin-top:20px">History</h3>
-      <ul>
-        <li *ngFor="let h of history">[{{ h.timestamp }}] {{ h.action }} <ng-container *ngIf="h.from_status || h.to_status">({{ h.from_status || '—' }} → {{ h.to_status || '—' }})</ng-container> by {{ h.user_name || 'System' }}</li>
-      </ul>
+      <div class="surface mt-3" style="padding:16px;">
+        <h3 class="m-0">History</h3>
+        <ul>
+          <li *ngFor="let h of history">[{{ h.timestamp }}] {{ h.action }} <ng-container *ngIf="h.from_status || h.to_status">({{ h.from_status || '—' }} → {{ h.to_status || '—' }})</ng-container> by {{ h.user_name || 'System' }}</li>
+        </ul>
+      </div>
     </ng-container>
   `
 })
@@ -82,6 +84,7 @@ export class TaskDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private fb = inject(FormBuilder);
+  private toast = inject(ToastService);
 
   task: any;
   history: any[] = [];
@@ -136,8 +139,8 @@ export class TaskDetailComponent implements OnInit {
     if (!payload.description) delete (payload as any).description;
     if (!payload.due_date) delete (payload as any).due_date;
     this.api.updateTask(this.task.id, payload).subscribe({
-      next: (updated) => { this.task = updated; this.editMode = false; this.load(this.task.id); },
-      error: (err) => { this.errorMessage = err?.error?.error || 'Failed to save'; }
+      next: (updated) => { this.task = updated; this.editMode = false; this.load(this.task.id); this.toast.show('success', 'Task saved'); },
+      error: (err) => { this.errorMessage = err?.error?.error || 'Failed to save'; this.toast.show('error', this.errorMessage); }
     });
   }
 
@@ -146,8 +149,8 @@ export class TaskDetailComponent implements OnInit {
     const ok = window.confirm(`Delete task "${title}"? This cannot be undone.`);
     if (!ok) return;
     this.api.deleteTask(this.task.id).subscribe({
-      next: () => this.router.navigate(['/tasks']),
-      error: (err) => { this.errorMessage = err?.error?.error || 'Delete failed'; }
+      next: () => { this.toast.show('success', 'Task deleted'); this.router.navigate(['/tasks']); },
+      error: (err) => { this.errorMessage = err?.error?.error || 'Delete failed'; this.toast.show('error', this.errorMessage); }
     });
   }
 }

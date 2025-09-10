@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Component, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
@@ -29,3 +29,35 @@ export class ApiService {
   updateUser(id: number, payload: any) { return this.http.put<any>(`/api/users/${id}`, payload); }
   deleteUser(id: number) { return this.http.delete<void>(`/api/users/${id}`); }
 }
+
+// Toasts
+export type ToastType = 'success' | 'error';
+export interface Toast { id: number; type: ToastType; message: string; }
+
+@Injectable({ providedIn: 'root' })
+export class ToastService {
+  private items = signal<Toast[]>([]);
+  list = computed(() => this.items());
+  private id = 1;
+
+  show(type: ToastType, message: string, timeoutMs = 2400) {
+    const t = { id: this.id++, type, message };
+    this.items.update(arr => [t, ...arr]);
+    setTimeout(() => this.dismiss(t.id), timeoutMs);
+  }
+
+  dismiss(id: number) { this.items.update(arr => arr.filter(t => t.id !== id)); }
+}
+
+@Component({
+  selector: 'app-toasts',
+  standalone: true,
+  template: `
+    <div class="toast-container">
+      <div class="toast" [class.success]="t.type==='success'" [class.error]="t.type==='error'" *ngFor="let t of service.list()">
+        {{ t.message }}
+      </div>
+    </div>
+  `
+})
+export class ToastsComponent { constructor(public service: ToastService) {} }

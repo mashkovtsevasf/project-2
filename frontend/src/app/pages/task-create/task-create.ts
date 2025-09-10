@@ -2,16 +2,16 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { ApiService } from '../../shared/api';
+import { ApiService, ToastService } from '../../shared/api';
 
 @Component({
   selector: 'app-task-create',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
-    <h2>Create Task</h2>
+    <h2 class="m-0">Create Task</h2>
 
-    <form [formGroup]="form" (ngSubmit)="submit()" novalidate style="display:grid; gap:12px; max-width:520px;">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="surface mt-3" style="display:grid; gap:12px; max-width:620px; padding:16px;">
       <label>
         Title
         <input type="text" formControlName="title" maxlength="100" required />
@@ -21,7 +21,7 @@ import { ApiService } from '../../shared/api';
       <label>
         Description (optional)
         <textarea formControlName="description" maxlength="500" rows="4"></textarea>
-        <div style="font-size:12px; color:#666">{{ (form.value.description?.length || 0) }}/500</div>
+        <div style="font-size:12px; color:var(--muted)">{{ (form.value.description?.length || 0) }}/500</div>
       </label>
 
       <label>
@@ -50,13 +50,13 @@ import { ApiService } from '../../shared/api';
         <div style="color:#c00" *ngIf="submitted && dateInvalid">Due date cannot be in the past.</div>
       </label>
 
-      <div style="display:flex; gap:8px; margin-top:8px;">
-        <button type="submit">Create Task</button>
+      <div class="flex gap-2 mt-2">
+        <button type="submit" class="primary">Create Task</button>
         <button type="button" (click)="cancel()">Cancel</button>
       </div>
 
-      <div *ngIf="successMessage" style="color:#0a0">{{ successMessage }}</div>
-      <div *ngIf="errorMessage" style="color:#c00">{{ errorMessage }}</div>
+      <div *ngIf="successMessage" style="color:var(--success)">{{ successMessage }}</div>
+      <div *ngIf="errorMessage" style="color:var(--danger)">{{ errorMessage }}</div>
     </form>
   `
 })
@@ -64,6 +64,7 @@ export class TaskCreateComponent implements OnInit {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private toast = inject(ToastService);
 
   users: any[] = [];
   form: FormGroup = this.fb.group({
@@ -110,10 +111,12 @@ export class TaskCreateComponent implements OnInit {
     this.api.createTask(payload).subscribe({
       next: () => {
         this.successMessage = 'Task created successfully! Redirecting...';
-        setTimeout(() => this.router.navigate(['/tasks']), 800);
+        this.toast.show('success', 'Task created');
+        setTimeout(() => this.router.navigate(['/tasks']), 700);
       },
       error: (err) => {
         this.errorMessage = err?.error?.error || 'Failed to create task';
+        this.toast.show('error', this.errorMessage);
       }
     });
   }

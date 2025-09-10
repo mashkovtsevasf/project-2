@@ -1,1 +1,113 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global Theme Variables */
+:root {
+  --bg: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --surface: #f8fafc;
+  --border: #e5e7eb;
+  --primary: #3b82f6;
+  --success: #16a34a;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --shadow: 0 10px 20px rgba(0,0,0,0.06);
+}
+
+:root.dark {
+  --bg: #0b1020;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --surface: #121a2f;
+  --border: #1f2945;
+  --primary: #60a5fa;
+  --success: #22c55e;
+  --danger: #f87171;
+  --warning: #fbbf24;
+  --shadow: 0 12px 24px rgba(0,0,0,0.4);
+}
+
+html, body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
+  line-height: 1.5;
+  transition: background 200ms ease, color 200ms ease;
+}
+
+/* Layout */
+.app-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px 16px;
+}
+
+/* Cards / surfaces */
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+/* Buttons */
+button, .btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 120ms ease, background 200ms ease, border-color 200ms ease;
+}
+button:hover, .btn:hover { transform: translateY(-1px); }
+button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+button.success { background: var(--success); border-color: var(--success); color: #fff; }
+button.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+/* Inputs */
+input, select, textarea {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+/* Tables (mobile-first) */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border-bottom: 1px solid var(--border); text-align: left; }
+th { font-weight: 600; color: var(--muted); }
+tr:hover { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+
+/* Animations */
+.fade-in { animation: fadeIn 240ms ease both; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: none; } }
+
+.slide-up { animation: slideUp 200ms ease both; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: none; } }
+
+/* Nav */
+nav a { color: var(--text); text-decoration: none; padding: 6px 8px; border-radius: 6px; }
+nav a.active { background: color-mix(in srgb, var(--primary) 15%, transparent); color: var(--primary); }
+
+/* Utility */
+.m-0 { margin: 0; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.gap-2 { gap: 8px; }
+.flex { display: flex; }
+.wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+
+/* Toasts */
+.toast-container { position: fixed; right: 16px; bottom: 16px; display: grid; gap: 8px; z-index: 9999; }
+.toast { padding: 10px 12px; border-radius: 10px; color: #fff; box-shadow: var(--shadow); }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
